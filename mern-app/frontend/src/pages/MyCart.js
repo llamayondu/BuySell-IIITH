@@ -45,6 +45,22 @@ const MyCart = () => {
             });
     };
 
+    const handlePlaceOrder = () => {
+        const token = localStorage.getItem('authToken');
+        const itemIds = cartItems.map(item => item.itemId);
+        const sellerIds = [...new Set(cartItems.map(item => item.sellerId))]; // Collect sellerIds from cart items
+        axios.post('/api/orders/place-order', { itemIds, sellerIds }, { headers: { Authorization: token } })
+            .then(response => {
+                alert('Order placed successfully');
+                console.log('Unhashed OTPs:', response.data.unhashedOtp);
+                setCartItems([]);
+            })
+            .catch(err => {
+                console.error('Error placing order:', err);
+                alert('Failed to place order');
+            });
+    };
+
     return (
         <div>
             <h1>My Cart</h1>
@@ -58,6 +74,7 @@ const MyCart = () => {
                     </li>
                 ))}
             </ul>
+            {cartItems.length > 0 && <button onClick={handlePlaceOrder}>Place Order</button>}
         </div>
     );
 };

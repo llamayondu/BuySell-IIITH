@@ -126,6 +126,31 @@ router.put('/me/cart/remove', authenticate, async (req, res) => {
     }
 });
 
+// POST: Fetch sellers by their IDs
+router.post('/sellers', authenticate, async (req, res) => {
+    const { sellerIds } = req.body;
+    try {
+        const sellers = await User.find({ _id: { $in: sellerIds } });
+        res.json(sellers);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Fetch buyers by IDs
+router.post('/buyers', async (req, res) => {
+    const { buyerIds } = req.body;
+    console.log('Fetching buyers with IDs:', buyerIds); // Debugging statement
+    try {
+        const buyers = await User.find({ _id: { $in: buyerIds } });
+        console.log('Fetched buyers:', buyers); // Debugging statement
+        res.json(buyers);
+    } catch (err) {
+        console.error('Error fetching buyers:', err); // Debugging statement
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // GET: Fetch all users
 router.get('/', async (req, res) => {
     try {

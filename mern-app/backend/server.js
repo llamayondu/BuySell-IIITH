@@ -6,6 +6,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
 const itemRoutes = require('./routes/itemRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 dotenv.config();
 
@@ -24,12 +25,14 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/orders', orderRoutes);
 
 app.get('/api/auth-check', (req, res) => {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
         jwt.verify(token, process.env.JWT_SECRET);
+        console.log("lol");
         res.json({ valid: true });
     } catch {
         res.status(401).json({ error: 'Invalid token' });

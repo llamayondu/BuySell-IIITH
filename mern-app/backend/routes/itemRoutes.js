@@ -60,9 +60,12 @@ router.get('/my-items', authenticate, async (req, res) => {
 router.post('/cart-items', authenticate, async (req, res) => {
     const { itemIds } = req.body;
     try {
+        console.log('Fetching items with IDs:', itemIds); // Debugging statement
         const items = await Item.find({ itemId: { $in: itemIds } });
+        console.log('Fetched items:', items); // Debugging statement
         res.json(items);
     } catch (err) {
+        console.error('Error fetching items:', err); // Debugging statement
         res.status(500).json({ error: err.message });
     }
 });
