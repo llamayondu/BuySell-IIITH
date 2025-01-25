@@ -1,5 +1,6 @@
 const express = require('express');
 const Item = require('../models/Item');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
@@ -55,12 +56,32 @@ router.get('/my-items', authenticate, async (req, res) => {
     }
 });
 
+// POST: Fetch items by their IDs
+router.post('/cart-items', authenticate, async (req, res) => {
+    const { itemIds } = req.body;
+    try {
+        const items = await Item.find({ itemId: { $in: itemIds } });
+        res.json(items);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET: Fetch a single item by ID
 router.get('/:itemId', authenticate, async (req, res) => {
     try {
         const item = await Item.findById(req.params.itemId);
         if (!item) return res.status(404).json({ error: 'Item not found' });
-        res.json(item);
+
+        const seller = await User.findById(item.sellerId);
+        if (!seller) return res.status(404).json({ error: 'Seller not found' });
+
+        const itemWithSeller = {
+            ...item.toObject(),
+            sellerName: `${seller.firstName} ${seller.lastName}`
+        };
+
+        res.json(itemWithSeller);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

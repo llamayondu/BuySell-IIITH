@@ -53,11 +53,11 @@ router.post('/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(400).json({ error: 'Invalid credentials' });
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        console.log("Generated token: ", token); // Debugging statement
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        // console.log("Generated token: ", token); // Debugging statement
         res.json({ token });
     } catch (err) {
-        console.error("Error during login: ", err); // Debugging statement
+        // console.error("Error during login: ", err); // Debugging statement
         res.status(500).json({ error: err.message });
     }
 });
@@ -82,6 +82,43 @@ router.put('/me', authenticate, async (req, res) => {
             email,
             age,
             contactNumber
+        }, { new: true });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Add item to cart
+router.put('/me/cart/add', authenticate, async (req, res) => {
+    const { itemId } = req.body;
+    try {
+        console.log('Adding item to cart:', itemId); // Debugging statement
+        const user = await User.findById(req.userId);
+        if (!user) {
+            console.error('User not found:', req.userId); // Debugging statement
+            return res.status(404).json({ error: 'User not found' });
+        }
+        console.log('User found:', user); // Debugging statement
+        if (!user.itemsInCart) {
+            user.itemsInCart = [];
+        }
+        user.itemsInCart.push(itemId);
+        await user.save();
+        console.log('Updated user:', user); // Debugging statement
+        res.json(user);
+    } catch (err) {
+        console.error('Error adding item to cart:', err); // Debugging statement
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Remove item from cart
+router.put('/me/cart/remove', authenticate, async (req, res) => {
+    const { itemId } = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(req.userId, {
+            $pull: { itemsInCart: itemId }
         }, { new: true });
         res.json(user);
     } catch (err) {

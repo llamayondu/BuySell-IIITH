@@ -28,6 +28,18 @@ const ItemDetails = () => {
             });
     }, [itemId, navigate]);
 
+    const handleAddToCart = () => {
+        const token = localStorage.getItem('authToken');
+        axios.put('/api/users/me/cart/add', { itemId: item.itemId }, { headers: { Authorization: token } })
+            .then(() => {
+                alert('Item added to cart');
+            })
+            .catch(err => {
+                console.error('Error adding item to cart:', err);
+                alert('Failed to add item to cart');
+            });
+    };
+
     if (!item) {
         return <div>Loading...</div>;
     }
@@ -38,6 +50,8 @@ const ItemDetails = () => {
             <p>Category: {item.category}</p>
             <p>Description: {item.description}</p>
             <p>Price: {item.price}</p>
+            <p>Seller: {item.sellerName}</p>
+            <button onClick={handleAddToCart}>Add to Cart</button>
             <button onClick={() => navigate('/search-items')}>Back</button>
         </div>
     );
