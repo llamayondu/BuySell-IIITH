@@ -54,6 +54,22 @@ const MyCart = () => {
                 alert('Order placed successfully');
                 console.log('Unhashed OTPs:', response.data.unhashedOtp);
                 setCartItems([]);
+                // Clear the user's cart
+                axios.put('/api/users/me/cart/clear', {}, { headers: { Authorization: token } })
+                    .then(() => {
+                        console.log('Cart cleared successfully');
+                        // Create a completed dummy order
+                        axios.post('/api/orders/completed', { itemIds, sellerIds }, { headers: { Authorization: token } })
+                            .then(() => {
+                                console.log('Completed dummy order created successfully');
+                            })
+                            .catch(err => {
+                                console.error('Error creating completed dummy order:', err);
+                            });
+                    })
+                    .catch(err => {
+                        console.error('Error clearing cart:', err);
+                    });
             })
             .catch(err => {
                 console.error('Error placing order:', err);

@@ -4,6 +4,8 @@ import { jwtDecode } from 'jwt-decode'; // Correct import
 
 const DeliverItems = () => {
     const [items, setItems] = useState([]);
+    const [otp, setOtp] = useState('');
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -14,8 +16,6 @@ const DeliverItems = () => {
 
         try {
             const decodedToken = jwtDecode(token);
-            // console.log('Decoded Token:', decodedToken); // Debugging statement
-
             const userId = decodedToken.userId;
             console.log('User ID:', userId); // Debugging statement
 
@@ -27,7 +27,7 @@ const DeliverItems = () => {
 
             axios.get('/api/orders/seller-orders', { headers: { Authorization: token } })
                 .then(response => {
-                    const sellerOrders = response.data;
+                    const sellerOrders = response.data.filter(order => order.pending); // Filter only pending orders
                     const itemIds = sellerOrders.flatMap(order => order.itemIds);
                     const buyerIds = [...new Set(sellerOrders.map(order => order.buyerId))];
 
@@ -57,10 +57,11 @@ const DeliverItems = () => {
                                                 if (item && item.sellerId === userId) {
                                                     return {
                                                         ...item,
-                                                        buyer: buyersMap[order.buyerId]
+                                                        buyer: buyersMap[order.buyerId],
+                                                        orderId: order._id // Add orderId to each item
                                                     };
                                                 }
-                                            return null;
+                                                return null;
                                             }).filter(item => item !== null);
                                         });
 
@@ -89,6 +90,27 @@ const DeliverItems = () => {
         }
     }, []);
 
+    const handleCompleteOrder = (orderId) => {
+        setSelectedOrderId(orderId);
+    };
+
+    const handleVerifyOtp = () => {
+        const token = localStorage.getItem('authToken');
+        axios.post('/api/orders/verify-otp', { orderId: selectedOrderId, otp }, { headers: { Authorization: token } })
+            .then(response => {
+                alert('OTP verified successfully');
+                setOtp('');
+                setSelectedOrderId(null);
+                // Refresh the items list
+                const updatedItems = items.filter(item => item.orderId !== selectedOrderId);
+                setItems(updatedItems);
+            })
+            .catch(err => {
+                console.error('Error verifying OTP:', err);
+                alert('Failed to verify OTP');
+            });
+    };
+
     return (
         <div>
             <h1>Deliver Items</h1>
@@ -98,9 +120,22 @@ const DeliverItems = () => {
                         <p>Name: {item.name}</p>
                         <p>Price: {item.price}</p>
                         <p>Buyer: {item.buyer}</p>
+                        <button onClick={() => handleCompleteOrder(item.orderId)}>Complete Order</button>
                     </div>
                 ))}
             </div>
+            {selectedOrderId && (
+                <div>
+                    <h2>Enter OTP to Complete Order</h2>
+                    <input
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="Enter OTP"
+                    />
+                    <button onClick={handleVerifyOtp}>Verify OTP</button>
+                </div>
+            )}
         </div>
     );
 };

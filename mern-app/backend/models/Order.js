@@ -8,7 +8,8 @@ const orderSchema = new mongoose.Schema({
     itemIds: { type: [String], required: true },
     amount: { type: Number, required: true },
     hashedOtp: { type: Map, of: String, required: true },
-    pending: { type: Boolean, default: true }
+    pending: { type: Boolean, default: true },
+    correspondingOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' } // Add correspondingOrderId field
 });
 
 const Order = mongoose.model('Order', orderSchema);

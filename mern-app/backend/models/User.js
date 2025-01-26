@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     age: { type: Number, required: true },
     contactNumber: { type: String, required: true },
     password: { type: String, required: true },
-    itemsInCart: { type: Array, default: null },
+    itemsInCart: { type: [String], default: [] }, // Ensure itemsInCart is an array of strings
     sellerReviews: { type: Array, default: null }
 });
 

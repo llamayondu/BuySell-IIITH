@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-// const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
@@ -32,7 +31,6 @@ app.get('/api/auth-check', (req, res) => {
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
         jwt.verify(token, process.env.JWT_SECRET);
-        console.log("lol");
         res.json({ valid: true });
     } catch {
         res.status(401).json({ error: 'Invalid token' });

@@ -126,6 +126,44 @@ router.put('/me/cart/remove', authenticate, async (req, res) => {
     }
 });
 
+// PUT: Clear user's cart
+// router.put('/me/cart/clear', authenticate, async (req, res) => {
+//     console.log('Received request to clear cart'); // Debug statement
+//     console.log('User ID:', req.userId); // Debug statement
+//     try {
+//         const user = await User.findOne({ userId: req.userId });
+//         if (!user) {
+//             console.error('User not found'); // Debug statement
+//             return res.status(404).send('User not found');
+//         }
+//         console.log('Items in cart before clearing:', user.itemsInCart); // Debug statement
+
+//         await User.updateOne({ userId: req.userId }, { $set: { itemsInCart: [] } });
+
+//         const updatedUser = await User.findOne({ userId: req.userId });
+//         console.log('Items in cart after clearing:', updatedUser.itemsInCart); // Debug statement
+
+//         console.log('Cart cleared successfully in database'); // Debug statement
+//         res.status(200).send('Cart cleared successfully');
+//     } catch (err) {
+//         console.error('Error clearing cart:', err);
+//         res.status(500).send('Failed to clear cart');
+//     }
+// });
+
+// PUT: Clear user's cart
+router.put('/me/cart/clear', authenticate, async (req, res) => {
+    const { itemId } = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(req.userId, {
+            $set: { itemsInCart: [] }
+        }, { new: true });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // POST: Fetch sellers by their IDs
 router.post('/sellers', authenticate, async (req, res) => {
     const { sellerIds } = req.body;

@@ -36,6 +36,7 @@ router.post('/place-order', authenticate, async (req, res) => {
             const hashed = await bcrypt.hash(otp, 10);
             hashedOtp.set(sellerId, hashed);
             unhashedOtp.set(sellerId, otp);
+            console.log(`Unhashed OTP for seller ${sellerId}: ${otp}`); // Console log the unhashed OTP
         }
 
         const order = new Order({
@@ -47,7 +48,65 @@ router.post('/place-order', authenticate, async (req, res) => {
         });
 
         await order.save();
+
+        // Create a corresponding "completed" dummy order
+        const completedOrder = new Order({
+            buyerId: req.userId,
+            sellerIds,
+            itemIds: [],
+            amount,
+            hashedOtp: new Map(),
+            pending: false,
+            correspondingOrderId: order._id
+        });
+
+        await completedOrder.save();
+
+        // Update the original order with the correspondingOrderId
+        order.correspondingOrderId = completedOrder._id;
+        await order.save();
+
         res.status(201).json({ order, unhashedOtp });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST: Verify OTP
+router.post('/verify-otp', authenticate, async (req, res) => {
+    const { orderId, otp } = req.body;
+    try {
+        const order = await Order.findById(orderId);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        const sellerId = req.userId;
+        const hashedOtp = order.hashedOtp.get(sellerId);
+
+        if (!hashedOtp) return res.status(400).json({ error: 'OTP not found for this seller' });
+
+        const isMatch = await bcrypt.compare(otp, hashedOtp);
+        if (isMatch) {
+            // Move item to the completed order
+            const completedOrder = await Order.findById(order.correspondingOrderId);
+            const itemsToMove = await Promise.all(order.itemIds.map(async (itemId) => {
+                const item = await Item.findOne({ itemId });
+                return item.sellerId === sellerId ? itemId : null;
+            }));
+            completedOrder.itemIds.push(...itemsToMove.filter(itemId => itemId !== null));
+            await completedOrder.save();
+
+            // Remove item from the original order
+            const itemsToKeep = await Promise.all(order.itemIds.map(async (itemId) => {
+                const item = await Item.findOne({ itemId });
+                return item.sellerId !== sellerId ? itemId : null;
+            }));
+            order.itemIds = itemsToKeep.filter(itemId => itemId !== null);
+            await order.save();
+
+            res.status(200).json({ message: 'OTP verified successfully' });
+        } else {
+            res.status(400).json({ error: 'Invalid OTP' });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -74,3 +133,5 @@ router.get('/seller-orders', authenticate, async (req, res) => {
 });
 
 module.exports = router;
+
+// 433514 527610
