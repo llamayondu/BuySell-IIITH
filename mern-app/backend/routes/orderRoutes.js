@@ -28,16 +28,11 @@ router.post('/place-order', authenticate, async (req, res) => {
         const items = await Item.find({ itemId: { $in: itemIds } });
         const sellerIds = [...new Set(items.map(item => item.sellerId))];
         const amount = items.reduce((sum, item) => sum + item.price, 0);
-        const hashedOtp = new Map();
-        const unhashedOtp = new Map();
 
-        for (const sellerId of sellerIds) {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const hashed = await bcrypt.hash(otp, 10);
-            hashedOtp.set(sellerId, hashed);
-            unhashedOtp.set(sellerId, otp);
-            console.log(`Unhashed OTP for seller ${sellerId}: ${otp}`); // Console log the unhashed OTP
-        }
+        // Generate a single OTP for all sellers
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+        console.log(`Unhashed OTP: ${otp}`); // Console log the unhashed OTP
 
         const order = new Order({
             buyerId: req.userId,
@@ -55,7 +50,7 @@ router.post('/place-order', authenticate, async (req, res) => {
             sellerIds,
             itemIds: [],
             amount,
-            hashedOtp: new Map(),
+            hashedOtp: '',
             pending: false,
             correspondingOrderId: order._id
         });
@@ -66,7 +61,7 @@ router.post('/place-order', authenticate, async (req, res) => {
         order.correspondingOrderId = completedOrder._id;
         await order.save();
 
-        res.status(201).json({ order, unhashedOtp });
+        res.status(201).json({ order, unhashedOtp: otp });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -80,7 +75,7 @@ router.post('/verify-otp', authenticate, async (req, res) => {
         if (!order) return res.status(404).json({ error: 'Order not found' });
 
         const sellerId = req.userId;
-        const hashedOtp = order.hashedOtp.get(sellerId);
+        const hashedOtp = order.hashedOtp;
 
         if (!hashedOtp) return res.status(400).json({ error: 'OTP not found for this seller' });
 
@@ -133,5 +128,3 @@ router.get('/seller-orders', authenticate, async (req, res) => {
 });
 
 module.exports = router;
-
-// 433514 527610
