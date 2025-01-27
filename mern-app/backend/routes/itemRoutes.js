@@ -70,6 +70,29 @@ router.post('/cart-items', authenticate, async (req, res) => {
     }
 });
 
+// GET: Fetch items bought by the current user
+router.get('/bought-items', authenticate, async (req, res) => {
+    try {
+        const items = await Item.find({ boughtBy: req.userId });
+        res.json(items);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET: Fetch items sold by the current user
+router.get('/sold-items', authenticate, async (req, res) => {
+    try {
+        console.log('Fetching sold items for user:', req.userId); // Debugging statement
+        const items = await Item.find({ boughtBy: { $ne: null }, sellerId: req.userId });
+        console.log('Fetched sold items:', items); // Debugging statement
+        res.json(items);
+    } catch (err) {
+        console.error('Error fetching sold items:', err); // Debugging statement
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET: Fetch a single item by ID
 router.get('/:itemId', authenticate, async (req, res) => {
     try {

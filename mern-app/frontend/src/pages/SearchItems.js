@@ -11,7 +11,8 @@ const SearchItems = () => {
     useEffect(() => {
         axios.get('/api/items') // Fetch all items
             .then(response => {
-                setItems(response.data);
+                setItems(response.data.filter(item => item.boughtBy === null)); // Filter items with boughtBy as null
+                // console.log("Fetching Items: ");
             })
             .catch(err => {
                 console.error('Error fetching items:', err);

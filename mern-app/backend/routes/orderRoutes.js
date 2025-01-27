@@ -25,7 +25,9 @@ const authenticate = (req, res, next) => {
 router.post('/place-order', authenticate, async (req, res) => {
     const { itemIds } = req.body;
     try {
+        console.log('Placing order for items:', itemIds); // Debugging statement
         const items = await Item.find({ itemId: { $in: itemIds } });
+        console.log('Fetched items:', items); // Debugging statement
         const sellerIds = [...new Set(items.map(item => item.sellerId))];
         const amount = items.reduce((sum, item) => sum + item.price, 0);
 
@@ -43,6 +45,11 @@ router.post('/place-order', authenticate, async (req, res) => {
         });
 
         await order.save();
+        console.log('Order saved:', order); // Debugging statement
+
+        // Update the boughtBy field for all items in the order
+        await Item.updateMany({ itemId: { $in: itemIds } }, { $set: { boughtBy: req.userId } });
+        console.log('Updated items with boughtBy field'); // Debugging statement
 
         // Create a corresponding "completed" dummy order
         const completedOrder = new Order({
@@ -50,19 +57,22 @@ router.post('/place-order', authenticate, async (req, res) => {
             sellerIds,
             itemIds: [],
             amount,
-            hashedOtp: '',
+            hashedOtp, // Use the same hashedOtp
             pending: false,
             correspondingOrderId: order._id
         });
 
         await completedOrder.save();
+        console.log('Completed order saved:', completedOrder); // Debugging statement
 
         // Update the original order with the correspondingOrderId
         order.correspondingOrderId = completedOrder._id;
         await order.save();
+        console.log('Updated original order with correspondingOrderId'); // Debugging statement
 
         res.status(201).json({ order, unhashedOtp: otp });
     } catch (err) {
+        console.error('Error placing order:', err); // Debugging statement
         res.status(500).json({ error: err.message });
     }
 });

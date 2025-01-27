@@ -7,7 +7,7 @@ const orderSchema = new mongoose.Schema({
     sellerIds: { type: [String], required: true },
     itemIds: { type: [String], required: true },
     amount: { type: Number, required: true },
-    hashedOtp: { type: Map, of: String, required: true },
+    hashedOtp: { type: String, required: true }, // Change to string
     pending: { type: Boolean, default: true },
     correspondingOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' } // Add correspondingOrderId field
 });

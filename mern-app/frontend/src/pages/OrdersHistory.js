@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const OrdersHistory = () => {
     const [activeTab, setActiveTab] = useState('pending');
@@ -8,6 +9,7 @@ const OrdersHistory = () => {
     const [soldItems, setSoldItems] = useState([]);
     const [items, setItems] = useState({});
     const [sellers, setSellers] = useState({});
+    const [buyers, setBuyers] = useState({});
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -20,17 +22,9 @@ const OrdersHistory = () => {
                 axios.get('/api/orders/buyer-orders', { headers: { Authorization: token } })
                     .then(response => {
                         setPendingOrders(response.data.filter(order => order.pending));
-                        setBoughtItems(response.data.filter(order => !order.pending));
                     })
                     .catch(err => {
                         console.error('Error fetching buyer orders:', err);
-                    });
-                axios.get('/api/orders/seller-orders', { headers: { Authorization: token } })
-                    .then(response => {
-                        setSoldItems(response.data);
-                    })
-                    .catch(err => {
-                        console.error('Error fetching seller orders:', err);
                     });
             })
             .catch(() => {
@@ -43,9 +37,7 @@ const OrdersHistory = () => {
             const token = localStorage.getItem('authToken');
             const allItemIds = [
                 ...new Set([
-                    ...pendingOrders.flatMap(order => order.itemIds),
-                    ...boughtItems.flatMap(order => order.itemIds),
-                    ...soldItems.flatMap(order => order.itemIds)
+                    ...pendingOrders.flatMap(order => order.itemIds)
                 ])
             ];
             if (allItemIds.length > 0) {
@@ -70,7 +62,53 @@ const OrdersHistory = () => {
             }
         };
         fetchItemsAndSellers();
-    }, [pendingOrders, boughtItems, soldItems]);
+    }, [pendingOrders]);
+
+    useEffect(() => {
+        const fetchBoughtItems = async () => {
+            const token = localStorage.getItem('authToken');
+            try {
+                const response = await axios.get('/api/items/bought-items', { headers: { Authorization: token } });
+                setBoughtItems(response.data);
+            } catch (err) {
+                console.error('Error fetching bought items:', err);
+            }
+        };
+        fetchBoughtItems();
+    }, []);
+
+    useEffect(() => {
+        const fetchSoldItems = async () => {
+            const token = localStorage.getItem('authToken');
+            try {
+                const response = await axios.get('/api/items/sold-items', { headers: { Authorization: token } });
+                setSoldItems(response.data);
+            } catch (err) {
+                console.error('Error fetching sold items:', err);
+            }
+        };
+        fetchSoldItems();
+    }, []);
+
+    useEffect(() => {
+        const fetchBuyers = async () => {
+            const token = localStorage.getItem('authToken');
+            const buyerIds = [...new Set(soldItems.map(item => item.boughtBy))];
+            if (buyerIds.length > 0) {
+                try {
+                    const response = await axios.post('/api/users/buyers', { buyerIds }, { headers: { Authorization: token } });
+                    const buyersMap = response.data.reduce((acc, buyer) => {
+                        acc[buyer._id] = `${buyer.firstName} ${buyer.lastName}`;
+                        return acc;
+                    }, {});
+                    setBuyers(buyersMap);
+                } catch (err) {
+                    console.error('Error fetching buyers:', err);
+                }
+            }
+        };
+        fetchBuyers();
+    }, [soldItems]);
 
     const renderOrders = (orders) => (
         orders.map(order => (
@@ -95,6 +133,28 @@ const OrdersHistory = () => {
         ))
     );
 
+    const renderBoughtItems = (items) => (
+        items.map(item => (
+            <div key={item.itemId} className="item-box">
+                <p>Name: {item.name}</p>
+                <p>Price: {item.price}</p>
+                <p>Seller: {sellers[item.sellerId]}</p>
+                <Link to={`/search-items/${item._id}`}>View Item</Link>
+            </div>
+        ))
+    );
+
+    const renderSoldItems = (items) => (
+        items.map(item => (
+            <div key={item.itemId} className="item-box">
+                <p>Name: {item.name}</p>
+                <p>Price: {item.price}</p>
+                <p>Buyer: {buyers[item.boughtBy]}</p>
+                <Link to={`/search-items/${item._id}`}>View Item</Link>
+            </div>
+        ))
+    );
+
     return (
         <div>
             <h1>Orders History</h1>
@@ -104,8 +164,8 @@ const OrdersHistory = () => {
                 <button onClick={() => setActiveTab('sold')}>Sold Items</button>
             </div>
             {activeTab === 'pending' && renderOrders(pendingOrders)}
-            {activeTab === 'bought' && renderOrders(boughtItems)}
-            {activeTab === 'sold' && renderOrders(soldItems)}
+            {activeTab === 'bought' && renderBoughtItems(boughtItems)}
+            {activeTab === 'sold' && renderSoldItems(soldItems)}
         </div>
     );
 };

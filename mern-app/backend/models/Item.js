@@ -7,7 +7,8 @@ const itemSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
-    sellerId: { type: String, required: true }
+    sellerId: { type: String, required: true },
+    boughtBy: { type: String, default: null } // Add boughtBy field
 });
 
 const Item = mongoose.model('Item', itemSchema);
