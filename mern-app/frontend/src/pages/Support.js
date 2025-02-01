@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
+import Chatbot from '../components/Chatbot';
 
 const Support = () => {
     useEffect(() => {
@@ -15,6 +16,7 @@ const Support = () => {
     return (
         <div>
             <h1>Support</h1>
+            <Chatbot />
         </div>
     );
 };

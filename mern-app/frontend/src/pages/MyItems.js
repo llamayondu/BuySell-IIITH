@@ -59,9 +59,11 @@ const MyItems = () => {
     return (
         <div>
             <h1>My Items</h1>
-            <button onClick={handleAddItem}>Add Item</button>
+            <div className="sub-navbar">
+                <button className="styled-button" onClick={handleAddItem}>Add Item</button>
+            </div>
             {isAdding && (
-                <div>
+                <div className="input-container">
                     <input
                         type="text"
                         name="name"
@@ -93,20 +95,26 @@ const MyItems = () => {
                         <option value="electronics">Electronics</option>
                         <option value="furniture">Furniture</option>
                     </select>
-                    <button onClick={handleSaveItem}>Save Item</button>
+                    <div className="sub-navbar">
+                        <button className="styled-button" onClick={handleSaveItem}>Save Item</button>
+                    </div>
                 </div>
             )}
             <h2>Items List</h2>
-            <ul>
-                {items.map(item => (
-                    <li key={item._id}>
-                        <p>Name: {item.name}</p>
-                        <p>Price: {item.price}</p>
-                        <p>Description: {item.description}</p>
-                        <p>Category: {item.category}</p>
-                    </li>
-                ))}
-            </ul>
+            <div className="items-grid">
+                {items.length > 0 ? (
+                    items.map(item => (
+                        <div key={item._id} className="search-item-box">
+                            <p>Name: {item.name}</p>
+                            <p>Price: {item.price}</p>
+                            <p>Description: {item.description}</p>
+                            <p>Category: {item.category}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No items found.</p>
+                )}
+            </div>
         </div>
     );
 };

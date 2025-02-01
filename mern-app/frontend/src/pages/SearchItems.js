@@ -52,15 +52,19 @@ const SearchItems = () => {
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
             />
-            <ul>
-                {filteredItems.map(item => (
-                    <li key={item._id}>
-                        <p>Name: {item.name}</p>
-                        <p>Price: {item.price}</p>
-                        <Link to={`/search-items/${item._id}`}>View Item</Link>
-                    </li>
-                ))}
-            </ul>
+            <div className="items-grid">
+                {filteredItems.length > 0 ? (
+                    filteredItems.map(item => (
+                        <div key={item._id} className="search-item-box">
+                            <p>Name: {item.name}</p>
+                            <p>Price: {item.price}</p>
+                            <Link to={`/search-items/${item._id}`}>View Item</Link>
+                        </div>
+                    ))
+                ) : (
+                    <p>No items found.</p>
+                )}
+            </div>
         </div>
     );
 };

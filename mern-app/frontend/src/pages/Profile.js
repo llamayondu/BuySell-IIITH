@@ -67,7 +67,7 @@ const Profile = () => {
         <div>
             <h1>Profile</h1>
             {isEditing ? (
-                <div>
+                <div className="input-container">
                     <input
                         type="text"
                         name="firstName"
@@ -98,7 +98,9 @@ const Profile = () => {
                         value={formData.contactNumber}
                         onChange={handleChange}
                     />
-                    <button onClick={handleSave}>Save Changes</button>
+                    <div className="sub-navbar">
+                        <button onClick={handleSave}>Save Changes</button>
+                    </div>
                 </div>
             ) : (
                 <div>
@@ -106,10 +108,14 @@ const Profile = () => {
                     <p>Email: {user.email}</p>
                     <p>Age: {user.age}</p>
                     <p>Contact Number: {user.contactNumber}</p>
-                    <button onClick={handleEdit}>Edit</button>
+                    <div className="sub-navbar">
+                        <button onClick={handleEdit}>Edit</button>
+                    </div>
                 </div>
             )}
-            <button onClick={handleLogout}>Log Out</button>
+            <div className="sub-navbar">
+                <button onClick={handleLogout}>Log Out</button>
+            </div>
         </div>
     );
 };

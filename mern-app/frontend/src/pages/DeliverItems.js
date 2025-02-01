@@ -115,17 +115,21 @@ const DeliverItems = () => {
         <div>
             <h1>Deliver Items</h1>
             <div className="items-list">
-                {items.map(item => (
-                    <div key={item.itemId} className="item-box">
-                        <p>Name: {item.name}</p>
-                        <p>Price: {item.price}</p>
-                        <p>Buyer: {item.buyer}</p>
-                        <button onClick={() => handleCompleteOrder(item.orderId)}>Complete Order</button>
-                    </div>
-                ))}
+                {items.length > 0 ? (
+                    items.map(item => (
+                        <div key={item.itemId} className="item-box">
+                            <p>Name: {item.name}</p>
+                            <p>Price: {item.price}</p>
+                            <p>Buyer: {item.buyer}</p>
+                            <button onClick={() => handleCompleteOrder(item.orderId)}>Complete Order</button>
+                        </div>
+                    ))
+                ) : (
+                    <p>No items to deliver.</p>
+                )}
             </div>
             {selectedOrderId && (
-                <div>
+                <div className="input-container">
                     <h2>Enter OTP to Complete Order</h2>
                     <input
                         type="text"

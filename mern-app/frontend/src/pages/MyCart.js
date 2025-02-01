@@ -51,7 +51,7 @@ const MyCart = () => {
         const sellerIds = [...new Set(cartItems.map(item => item.sellerId))]; // Collect sellerIds from cart items
         axios.post('/api/orders/place-order', { itemIds, sellerIds }, { headers: { Authorization: token } })
             .then(response => {
-                alert('Order placed successfully');
+                alert('Order placed successfully.\nHere is your otp, keep it safe until the order arrives: ' + response.data.unhashedOtp);
                 console.log('Unhashed OTPs:', response.data.unhashedOtp);
                 setCartItems([]);
                 // Clear the user's cart
@@ -80,15 +80,19 @@ const MyCart = () => {
     return (
         <div>
             <h1>My Cart</h1>
-            <ul>
-                {cartItems.map(item => (
-                    <li key={item.itemId}>
-                        <p>Name: {item.name}</p>
-                        <p>Price: {item.price}</p>
-                        <Link to={`/search-items/${item._id}`}>View Item</Link>
-                        <button onClick={() => handleRemoveFromCart(item.itemId)}>Remove</button>
-                    </li>
-                ))}
+            <ul className="items-list">
+                {cartItems.length > 0 ? (
+                    cartItems.map(item => (
+                        <li key={item.itemId} className="item-box">
+                            <p>Name: {item.name}</p>
+                            <p>Price: {item.price}</p>
+                            <Link to={`/search-items/${item._id}`}>View Item</Link>
+                            <button onClick={() => handleRemoveFromCart(item.itemId)}>Remove</button>
+                        </li>
+                    ))
+                ) : (
+                    <p>No items in cart.</p>
+                )}
             </ul>
             {cartItems.length > 0 && <button onClick={handlePlaceOrder}>Place Order</button>}
         </div>

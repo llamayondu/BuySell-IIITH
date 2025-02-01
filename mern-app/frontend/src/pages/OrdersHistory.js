@@ -111,26 +111,33 @@ const OrdersHistory = () => {
     }, [soldItems]);
 
     const renderOrders = (orders) => (
-        orders.map(order => (
-            <div key={order.transactionId} className="order-box">
-                <h3>Order ID: {order.transactionId}</h3>
-                <p>Amount: {order.amount}</p>
-                <div className="items-box">
-                    {order.itemIds.map(itemId => {
-                        const item = items[itemId];
-                        if (!item) return null;
-                        return (
-                            <div key={item.itemId} className="item-box">
-                                <p>Name: {item.name}</p>
-                                <p>Price: {item.price}</p>
-                                <p>Seller: {sellers[item.sellerId]}</p>
-                            </div>
-                        );
-                    })}
+        orders.map(order => {
+            const filteredItems = order.itemIds
+                .map(itemId => {
+                    const item = items[itemId];
+                    if (!item) return null;
+                    return (
+                        <div key={item.itemId} className="item-box">
+                            <p>Name: {item.name}</p>
+                            <p>Price: {item.price}</p>
+                            <p>Seller: {sellers[item.sellerId]}</p>
+                        </div>
+                    );
+                })
+                .filter(Boolean);
+
+            if (filteredItems.length === 0) return null;
+
+            return (
+                <div key={order.transactionId} className="order-box">
+                    <h3>Order ID: {order.transactionId}</h3>
+                    <p>Amount: {order.amount}</p>
+                    <div className="items-box">
+                        {filteredItems}
+                    </div>
                 </div>
-                <hr />
-            </div>
-        ))
+            );
+        })
     );
 
     const renderBoughtItems = (items) => (
@@ -163,9 +170,15 @@ const OrdersHistory = () => {
                 <button onClick={() => setActiveTab('bought')}>Bought Items</button>
                 <button onClick={() => setActiveTab('sold')}>Sold Items</button>
             </div>
-            {activeTab === 'pending' && renderOrders(pendingOrders)}
-            {activeTab === 'bought' && renderBoughtItems(boughtItems)}
-            {activeTab === 'sold' && renderSoldItems(soldItems)}
+            {activeTab === 'pending' && (
+                pendingOrders.length > 0 ? renderOrders(pendingOrders) : <p>No pending orders found.</p>
+            )}
+            {activeTab === 'bought' && (
+                boughtItems.length > 0 ? renderBoughtItems(boughtItems) : <p>No bought items found.</p>
+            )}
+            {activeTab === 'sold' && (
+                soldItems.length > 0 ? renderSoldItems(soldItems) : <p>No sold items found.</p>
+            )}
         </div>
     );
 };

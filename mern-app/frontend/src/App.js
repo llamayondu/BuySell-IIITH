@@ -150,6 +150,8 @@ const RegisterPage = () => {
 };
 
 const HomePage = () => {
+    const [user, setUser] = useState({});
+
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         window.location.href = '/';
@@ -162,6 +164,11 @@ const HomePage = () => {
         } else {
             axios.get('/api/auth-check', {
                 headers: { Authorization: token },
+            }).then(() => {
+                axios.get('/api/users/me', { headers: { Authorization: token } })
+                    .then(response => {
+                        setUser(response.data);
+                    })
             }).catch(() => {
                 window.location.href = '/';
             });
@@ -170,7 +177,7 @@ const HomePage = () => {
 
     return (
         <div>
-            <h1>Home</h1>
+            <h1>Welcome, {user.firstName}!</h1>
             <button onClick={handleLogout}>Log Out</button>
         </div>
     );
